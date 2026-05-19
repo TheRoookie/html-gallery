@@ -1,27 +1,25 @@
 [
   {
-    "name": "full-dashboard-v1",
-    "path": "./XeoPix/full-dashboard-v1/",
-    "folder": "XeoPix/full-dashboard-v1",
-    "category": "XeoPix",
-    "description": "",
-    "thumbnail": null,
+    "name": "Project A",
+    "path": "./full-dashboard-v2/",
+    "folder": "full-dashboard-v2",
+    "category": "General",
+    "description": "Beautiful WebGL particle simulation using Three.js.",
+    "thumbnail": "./full-dashboard-v2/thumbnail.png",
     "tags": [
-      "xeopix",
-      "full-dashboard-v1"
+      "full-dashboard-v2"
     ],
     "lastUpdated": "2026-05-19"
   },
   {
-    "name": "full-dashboard-v2",
-    "path": "./XeoPix/full-dashboard-v2/",
-    "folder": "XeoPix/full-dashboard-v2",
-    "category": "XeoPix",
-    "description": "",
-    "thumbnail": null,
+    "name": "Project A",
+    "path": "./full-dashboard-v1/",
+    "folder": "full-dashboard-v1",
+    "category": "General",
+    "description": "Beautiful WebGL particle simulation using Three.js.",
+    "thumbnail": "./full-dashboard-v1/thumbnail.png",
     "tags": [
-      "xeopix",
-      "full-dashboard-v2"
+      "full-dashboard-v1"
     ],
     "lastUpdated": "2026-05-19"
   }
