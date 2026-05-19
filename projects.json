@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Project A",
+    "path": "./XeoPix/",
+    "folder": "XeoPix",
+    "category": "General",
+    "description": "Beautiful WebGL particle simulation using Three.js.",
+    "thumbnail": "./XeoPix/thumbnail.png",
+    "tags": [
+      "xeopix"
+    ],
+    "lastUpdated": "2026-05-19"
+  }
+]
