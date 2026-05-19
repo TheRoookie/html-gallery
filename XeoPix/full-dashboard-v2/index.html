@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XeoPix | Project Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-base: #F0EEE9;
+            --bg-surface: #F9F8F6;
+            --ink: #0A0A0A;
+            --ink-muted: #5A5A55;
+            --border: #C8C6C0;
+            --critical: #E62A00;
+            --critical-bg: #FFDCD4;
+            --important: #D47500;
+            --important-bg: #FFEFD6;
+            --standard: #007A33;
+            --standard-bg: #D4F5E1;
+            --font-display: 'Bricolage Grotesque', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--ink);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.25;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* ─── VIEWS ─── */
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* ─── DASHBOARD LAYOUT ─── */
+        .app-container {
+            min-height: 100vh;
+            border: 1px solid var(--border);
+            margin: 16px;
+            background: var(--bg-surface);
+            box-shadow: 16px 16px 0 var(--border);
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        header.topbar {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            background: var(--bg-base);
+        }
+
+        .page-context {
+            font-family: var(--font-display);
+        }
+
+        .page-context h1 {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+        }
+
+        .page-context .meta {
+            color: var(--ink-muted);
+            display: flex;
+            gap: 16px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--ink);
+            color: var(--ink);
+            padding: 8px 16px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-outline:hover {
+            background: var(--ink);
+            color: var(--bg-base);
+        }
+
+        .btn-primary {
+            background: var(--ink);
+            border: 1px solid var(--ink);
+            color: var(--bg-base);
+            padding: 8px 16px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--critical);
+            border-color: var(--critical);
+        }
+
+        /* ─── GRID ─── */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 0;
+        }
+
+        .panel {
+            border-bottom: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel.col-span-12 {
+            grid-column: span 12;
+            border-right: none;
+        }
+
+        .panel.col-span-8 {
+            grid-column: span 8;
+        }
+
+        .panel.col-span-6 {
+            grid-column: span 6;
+        }
+
+        .panel.col-span-4 {
+            grid-column: span 4;
+        }
+
+        .panel.col-span-3 {
+            grid-column: span 3;
+        }
+
+        .panel-no-border-right {
+            border-right: none;
+        }
+
+        .panel-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--ink-muted);
+            margin-bottom: auto;
+            padding-bottom: 16px;
+        }
+
+        /* ─── DATA DISPLAY ─── */
+        .data-huge {
+            font-family: var(--font-display);
+            font-size: 96px;
+            font-weight: 800;
+            line-height: 0.9;
+            letter-spacing: -0.04em;
+            margin-top: 16px;
+        }
+
+        .data-large {
+            font-family: var(--font-display);
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            margin-top: 16px;
+        }
+
+        .data-label {
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 8px;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-critical {
+            background: var(--critical);
+        }
+
+        .status-important {
+            background: var(--important);
+        }
+
+        .status-standard {
+            background: var(--standard);
+        }
+
+        /* ─── DONUT ─── */
+        .chart-donut {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: conic-gradient(var(--standard) 0deg 234deg, var(--critical) 234deg 288deg, var(--important) 288deg 360deg);
+            position: relative;
+            margin: 24px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-donut::after {
+            content: "";
+            width: 90px;
+            height: 90px;
+            background: var(--bg-surface);
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .chart-donut-value {
+            position: relative;
+            z-index: 2;
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        /* ─── BAR ─── */
+        .chart-bar-stacked {
+            width: 100%;
+            height: 32px;
+            display: flex;
+            margin: 24px 0;
+            border: 1px solid var(--ink);
+        }
+
+        .bar-segment {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            font-size: 10px;
+            color: #fff;
+            overflow: hidden;
+            border-right: 1px solid var(--ink);
+        }
+
+        .bar-segment:last-child {
+            border-right: none;
+        }
+
+        .bar-critical {
+            background: var(--critical);
+            width: 15%;
+        }
+
+        .bar-important {
+            background: var(--important);
+            width: 25%;
+        }
+
+        .bar-standard {
+            background: var(--standard);
+            width: 60%;
+            color: var(--ink);
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            font-size: 11px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border: 1px solid var(--ink);
+        }
+
+        /* ─── ALERT LIST ─── */
+        .alert-list {
+            list-style: none;
+            margin-top: 16px;
+        }
+
+        .alert-item {
+            border-top: 1px solid var(--border);
+            animation: slideIn 0.5s ease backwards;
+        }
+
+        .alert-item:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .alert-item:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .alert-item:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .alert-item:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .alert-row {
+            display: grid;
+            grid-template-columns: 80px 1fr 80px 32px;
+            align-items: center;
+            padding: 12px 0;
+            gap: 8px;
+        }
+
+        .alert-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: var(--ink);
+            color: var(--bg-surface);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-block;
+        }
+
+        .alert-tag.critical {
+            background: var(--critical);
+        }
+
+        .alert-tag.important {
+            background: var(--important);
+        }
+
+        .alert-msg {
+            padding-left: 16px;
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .alert-count {
+            text-align: right;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        /* ─── DROPDOWN TOGGLE ─── */
+        .dropdown-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--ink-muted);
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .dropdown-toggle:hover {
+            background: var(--ink);
+            color: var(--bg-surface);
+            border-color: var(--ink);
+        }
+
+        .dropdown-toggle.open {
+            background: var(--ink);
+            color: var(--bg-surface);
+            border-color: var(--ink);
+        }
+
+        .url-dropdown {
+            display: none;
+            border-top: 1px dashed var(--border);
+            padding: 12px 0 16px 0;
+        }
+
+        .url-dropdown.open {
+            display: block;
+        }
+
+        .url-dropdown-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--ink-muted);
+            margin-bottom: 10px;
+            padding-left: 96px;
+        }
+
+        .url-list {
+            padding-left: 96px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .url-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--ink);
+            text-decoration: none;
+            padding: 4px 8px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            width: fit-content;
+        }
+
+        .url-link:hover {
+            border-color: var(--ink);
+            background: var(--ink);
+            color: var(--bg-surface);
+        }
+
+        .url-link::before {
+            content: "→";
+            font-size: 11px;
+        }
+
+        /* ─── HEATMAP TABLE ─── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--ink-muted);
+            font-weight: normal;
+        }
+
+        .data-table td {
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .cell-heatmap {
+            text-align: right;
+            font-family: var(--font-mono);
+            font-weight: 500;
+        }
+
+        .hm-high {
+            background: var(--critical-bg);
+            color: var(--critical);
+            border-left: 1px solid var(--border);
+        }
+
+        .hm-med {
+            background: var(--important-bg);
+            color: var(--important);
+            border-left: 1px solid var(--border);
+        }
+
+        .hm-low {
+            background: var(--bg-surface);
+            color: var(--ink);
+            border-left: 1px solid var(--border);
+        }
+
+        .hm-ok {
+            background: var(--standard-bg);
+            color: var(--standard);
+            border-left: 1px solid var(--border);
+        }
+
+        .score-highlight {
+            color: var(--standard);
+        }
+
+        /* ─── ANIMATIONS ─── */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade {
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        /* ══════════════════════════════════════════
+           ISSUE DETAIL VIEW
+        ══════════════════════════════════════════ */
+        #view-issue {
+            min-height: 100vh;
+            background: var(--bg-base);
+        }
+
+        .issue-topbar {
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-surface);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--ink);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 6px 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: var(--ink);
+            color: var(--bg-surface);
+        }
+
+        .issue-topbar-meta {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .issue-topbar-meta .crumb {
+            font-size: 11px;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .issue-topbar-meta .issue-title-small {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .issue-body {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 48px 40px;
+        }
+
+        /* Issue Header Block */
+        .issue-header-block {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 48px;
+            padding-bottom: 48px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .issue-severity-badge {
+            flex-shrink: 0;
+            padding: 6px 14px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 6px;
+        }
+
+        .badge-critical {
+            background: var(--critical);
+            color: #fff;
+        }
+
+        .badge-important {
+            background: var(--important);
+            color: #fff;
+        }
+
+        .issue-title-block h2 {
+            font-family: var(--font-display);
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin-bottom: 12px;
+        }
+
+        .issue-title-block .issue-url-display {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--ink-muted);
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            display: inline-block;
+        }
+
+        /* Issue Sections */
+        .issue-section {
+            margin-bottom: 40px;
+        }
+
+        .issue-section-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--ink-muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .issue-section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .issue-section-content {
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--ink);
+        }
+
+        .issue-section-content strong {
+            font-weight: 700;
+        }
+
+        .trigger-box {
+            background: var(--critical-bg);
+            border-left: 3px solid var(--critical);
+            padding: 16px 20px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--ink);
+            margin-top: 4px;
+        }
+
+        .trigger-box.important {
+            background: var(--important-bg);
+            border-left-color: var(--important);
+        }
+
+        .fix-steps {
+            list-style: none;
+            margin-top: 4px;
+            counter-reset: fix-counter;
+        }
+
+        .fix-steps li {
+            counter-increment: fix-counter;
+            display: flex;
+            gap: 16px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.5;
+            align-items: flex-start;
+        }
+
+        .fix-steps li:last-child {
+            border-bottom: none;
+        }
+
+        .fix-steps li::before {
+            content: counter(fix-counter, decimal-leading-zero);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink-muted);
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            padding: 2px 7px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .doc-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--ink);
+            color: var(--bg-surface);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 12px 24px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+            margin-top: 4px;
+        }
+
+        .doc-btn:hover {
+            background: var(--critical);
+        }
+
+        .doc-btn .doc-arrow {
+            font-size: 14px;
+        }
+
+        /* ─── SCANNED PAGES TABLE ─── */
+        .scanned-pages-section {
+            margin-top: 64px;
+            padding-top: 48px;
+            border-top: 2px solid var(--ink);
+        }
+
+        .scanned-pages-section h3 {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+        }
+
+        .scanned-pages-section .section-sub {
+            font-size: 12px;
+            color: var(--ink-muted);
+            margin-bottom: 24px;
+        }
+
+        .pages-filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .filter-input {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 8px 12px;
+            color: var(--ink);
+            outline: none;
+            flex: 1;
+            max-width: 340px;
+        }
+
+        .filter-input::placeholder {
+            color: var(--ink-muted);
+        }
+
+        .filter-input:focus {
+            border-color: var(--ink);
+        }
+
+        .pages-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .pages-table thead tr {
+            background: var(--ink);
+            color: var(--bg-surface);
+        }
+
+        .pages-table th {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .pages-table th:not(:first-child) {
+            text-align: right;
+        }
+
+        .pages-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+
+        .pages-table tbody tr:hover {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .pages-table td {
+            padding: 11px 16px;
+            font-size: 12px;
+        }
+
+        .pages-table td.url-cell {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pages-table td:not(.url-cell) {
+            text-align: right;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .count-issues {
+            color: var(--critical);
+        }
+
+        .count-warnings {
+            color: var(--important);
+        }
+
+        .count-improvements {
+            color: var(--standard);
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 1px 7px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 2px;
+        }
+
+        .pill-critical {
+            background: var(--critical-bg);
+            color: var(--critical);
+        }
+
+        .pill-important {
+            background: var(--important-bg);
+            color: var(--important);
+        }
+
+        .pill-standard {
+            background: var(--standard-bg);
+            color: var(--standard);
+        }
+
+        .pages-table-footer {
+            padding: 12px 0;
+            font-size: 11px;
+            color: var(--ink-muted);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ════════════════════════════════════════
+     VIEW 1: DASHBOARD
+════════════════════════════════════════ -->
+    <div id="view-dashboard" class="view active">
+        <div class="app-container">
+            <main>
+                <header class="topbar">
+                    <div class="page-context">
+                        <h1>Project Dashboard</h1>
+                        <div class="meta">
+                            <span>Target: global-corp.com</span>
+                            <span>Crawl Date: May 19, 2026</span>
+                            <span>Total Items: 227 Rules Evaluated</span>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-outline">Recrawl</button>
+                        <button class="btn-primary">Export Report (PDF)</button>
+                    </div>
+                </header>
+
+                <div class="content-grid animate-fade">
+
+                    <!-- KPI: Overall Score -->
+                    <div class="panel col-span-4" style="background: var(--bg-base);">
+                        <div class="panel-header">Overall SEO Health Score</div>
+                        <div class="data-huge score-highlight">72<span
+                                style="font-size:48px; color:var(--ink-muted);">/100</span></div>
+                        <div class="data-label">
+                            <span class="status-dot status-important"></span> Medium Risk Detected
+                        </div>
+                    </div>
+
+                    <!-- KPI: Crawl Summary -->
+                    <div class="panel col-span-4">
+                        <div class="panel-header">Crawl Summary</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                            <div>
+                                <div class="data-large">12.4k</div>
+                                <div class="data-label">URLs Crawled</div>
+                            </div>
+                            <div>
+                                <div class="data-large">9.8k</div>
+                                <div class="data-label">Indexable</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 24px; border-top: 1px dashed var(--border); padding-top: 16px;">
+                            <span style="color: var(--critical); font-weight: 600;">842</span> URLs with Errors
+                        </div>
+                    </div>
+
+                    <!-- Chart: Overall Check Status -->
+                    <div class="panel col-span-4 panel-no-border-right">
+                        <div class="panel-header">Overall Check Status</div>
+                        <div style="display:flex; align-items:center; gap: 24px;">
+                            <div class="chart-donut">
+                                <span class="chart-donut-value">65%</span>
+                            </div>
+                            <div style="flex-grow: 1;">
+                                <div class="legend" style="flex-direction: column;">
+                                    <div class="legend-item">
+                                        <div class="legend-color" style="background: var(--standard)"></div> 65% Passed
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-color" style="background: var(--important)"></div> 20%
+                                        Warning
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-color" style="background: var(--critical)"></div> 15% Failed
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Priority Breakdown -->
+                    <div class="panel col-span-6">
+                        <div class="panel-header">Issues by Priority (Volume)</div>
+                        <div class="chart-bar-stacked">
+                            <div class="bar-segment bar-critical">CRITICAL (15%)</div>
+                            <div class="bar-segment bar-important">IMPORTANT (25%)</div>
+                            <div class="bar-segment bar-standard">STANDARD (60%)</div>
+                        </div>
+                        <div
+                            style="display:flex; justify-content:space-between; font-size: 11px; color: var(--ink-muted);">
+                            <span>0</span>
+                            <span>Total Issues: 3,421</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+
+                    <!-- AI Visibility -->
+                    <div class="panel col-span-3">
+                        <div class="panel-header">AI Visibility Score</div>
+                        <div class="data-large">48<span style="font-size:24px; color:var(--ink-muted);">/100</span>
+                        </div>
+                        <div class="data-label" style="color: var(--critical);">
+                            <span class="status-dot status-critical"></span> Poor Optimization
+                        </div>
+                    </div>
+
+                    <!-- CWV -->
+                    <div class="panel col-span-3 panel-no-border-right">
+                        <div class="panel-header">Core Web Vitals</div>
+                        <div class="data-large">85<span style="font-size:24px; color:var(--ink-muted);">/100</span>
+                        </div>
+                        <div class="data-label" style="color: var(--standard);">
+                            <span class="status-dot status-standard"></span> Passing
+                        </div>
+                    </div>
+
+                    <!-- Executive Alerts -->
+                    <div class="panel col-span-12 panel-no-border-right">
+                        <div class="panel-header">Executive Alerts & Highest Priorities</div>
+                        <ul class="alert-list" id="alert-list">
+
+                            <!-- Alert 1 -->
+                            <li class="alert-item" data-issue="canonical">
+                                <div class="alert-row">
+                                    <span class="alert-tag critical">Critical</span>
+                                    <span class="alert-msg">Pages missing canonical tags or canonical mismatch</span>
+                                    <span class="alert-count">55 URLs</span>
+                                    <button class="dropdown-toggle" onclick="toggleDropdown(this, 'canonical')"
+                                        title="Show affected URLs">▾</button>
+                                </div>
+                                <div class="url-dropdown" id="dd-canonical">
+                                    <div class="url-dropdown-label">Affected URLs (55 total — showing top 8)</div>
+                                    <div class="url-list">
+                                        <span class="url-link"
+                                            onclick="openIssue('canonical', this.textContent.replace('→ ',''), 'critical')">global-corp.com/products/enterprise-suite</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('canonical', this.textContent.replace('→ ',''), 'critical')">global-corp.com/products/starter-plan</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('canonical', this.textContent.replace('→ ',''), 'critical')">global-corp.com/solutions/marketing</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('canonical', this.textContent.replace('→ ',''), 'critical')">global-corp.com/solutions/sales-ops</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('canonical', this.textContent.replace('→ ',''), 'critical')">global-corp.com/blog/category/updates</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('canonical', this.textContent.replace('→ ',''), 'critical')">global-corp.com/pricing?plan=annual</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('canonical', this.textContent.replace('→ ',''), 'critical')">global-corp.com/landing/q2-promo</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('canonical', this.textContent.replace('→ ',''), 'critical')">global-corp.com/resources/whitepapers</span>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- Alert 2 -->
+                            <li class="alert-item" data-issue="soft404">
+                                <div class="alert-row">
+                                    <span class="alert-tag critical">Critical</span>
+                                    <span class="alert-msg">Soft 404s detected on critical conversion paths</span>
+                                    <span class="alert-count">117 URLs</span>
+                                    <button class="dropdown-toggle" onclick="toggleDropdown(this, 'soft404')"
+                                        title="Show affected URLs">▾</button>
+                                </div>
+                                <div class="url-dropdown" id="dd-soft404">
+                                    <div class="url-dropdown-label">Affected URLs (117 total — showing top 8)</div>
+                                    <div class="url-list">
+                                        <span class="url-link"
+                                            onclick="openIssue('soft404', this.textContent.replace('→ ',''), 'critical')">global-corp.com/checkout/confirm</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('soft404', this.textContent.replace('→ ',''), 'critical')">global-corp.com/checkout/success</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('soft404', this.textContent.replace('→ ',''), 'critical')">global-corp.com/trial/signup</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('soft404', this.textContent.replace('→ ',''), 'critical')">global-corp.com/demo/request</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('soft404', this.textContent.replace('→ ',''), 'critical')">global-corp.com/onboarding/step-1</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('soft404', this.textContent.replace('→ ',''), 'critical')">global-corp.com/onboarding/step-2</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('soft404', this.textContent.replace('→ ',''), 'critical')">global-corp.com/plans/upgrade</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('soft404', this.textContent.replace('→ ',''), 'critical')">global-corp.com/cart/abandoned</span>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- Alert 3 -->
+                            <li class="alert-item" data-issue="llmstxt">
+                                <div class="alert-row">
+                                    <span class="alert-tag important">Important</span>
+                                    <span class="alert-msg">Missing llms.txt (AI Engine Signal gap)</span>
+                                    <span class="alert-count">Site-wide</span>
+                                    <button class="dropdown-toggle" onclick="toggleDropdown(this, 'llmstxt')"
+                                        title="Show affected URLs">▾</button>
+                                </div>
+                                <div class="url-dropdown" id="dd-llmstxt">
+                                    <div class="url-dropdown-label">Affected scope — site-level file missing</div>
+                                    <div class="url-list">
+                                        <span class="url-link"
+                                            onclick="openIssue('llmstxt', this.textContent.replace('→ ',''), 'important')">global-corp.com/llms.txt
+                                            (not found)</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('llmstxt', this.textContent.replace('→ ',''), 'important')">global-corp.com/llms-full.txt
+                                            (not found)</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('llmstxt', this.textContent.replace('→ ',''), 'important')">global-corp.com/robots.txt
+                                            (no AI agent directives)</span>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- Alert 4 -->
+                            <li class="alert-item" data-issue="schema">
+                                <div class="alert-row">
+                                    <span class="alert-tag important">Important</span>
+                                    <span class="alert-msg">Product pages missing required schema attributes</span>
+                                    <span class="alert-count">342 URLs</span>
+                                    <button class="dropdown-toggle" onclick="toggleDropdown(this, 'schema')"
+                                        title="Show affected URLs">▾</button>
+                                </div>
+                                <div class="url-dropdown" id="dd-schema">
+                                    <div class="url-dropdown-label">Affected URLs (342 total — showing top 8)</div>
+                                    <div class="url-list">
+                                        <span class="url-link"
+                                            onclick="openIssue('schema', this.textContent.replace('→ ',''), 'important')">global-corp.com/products/enterprise-suite</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('schema', this.textContent.replace('→ ',''), 'important')">global-corp.com/products/starter-plan</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('schema', this.textContent.replace('→ ',''), 'important')">global-corp.com/products/pro-bundle</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('schema', this.textContent.replace('→ ',''), 'important')">global-corp.com/products/add-ons/api-access</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('schema', this.textContent.replace('→ ',''), 'important')">global-corp.com/products/add-ons/analytics</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('schema', this.textContent.replace('→ ',''), 'important')">global-corp.com/store/category/tools</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('schema', this.textContent.replace('→ ',''), 'important')">global-corp.com/store/category/integrations</span>
+                                        <span class="url-link"
+                                            onclick="openIssue('schema', this.textContent.replace('→ ',''), 'important')">global-corp.com/marketplace/featured</span>
+                                    </div>
+                                </div>
+                            </li>
+
+                        </ul>
+                    </div>
+
+                    <!-- Category Heatmap -->
+                    <div class="panel col-span-12 panel-no-border-right" style="border-bottom: none;">
+                        <div class="panel-header">Category Performance Heatmap</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Category Group</th>
+                                    <th style="text-align:right">Critical Issues</th>
+                                    <th style="text-align:right">Important Issues</th>
+                                    <th style="text-align:right">Standard Issues</th>
+                                    <th style="text-align:right">Total Impacted</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Crawl Behaviour</td>
+                                    <td class="cell-heatmap hm-high">124</td>
+                                    <td class="cell-heatmap hm-med">45</td>
+                                    <td class="cell-heatmap hm-low">12</td>
+                                    <td class="cell-heatmap">181</td>
+                                </tr>
+                                <tr>
+                                    <td>Page SEO Basics</td>
+                                    <td class="cell-heatmap hm-med">55</td>
+                                    <td class="cell-heatmap hm-low">8</td>
+                                    <td class="cell-heatmap hm-low">2</td>
+                                    <td class="cell-heatmap">65</td>
+                                </tr>
+                                <tr>
+                                    <td>AEO Content Signals</td>
+                                    <td class="cell-heatmap hm-low">0</td>
+                                    <td class="cell-heatmap hm-high">342</td>
+                                    <td class="cell-heatmap hm-med">88</td>
+                                    <td class="cell-heatmap">430</td>
+                                </tr>
+                                <tr>
+                                    <td>Structured Data & Rich Results</td>
+                                    <td class="cell-heatmap hm-high">89</td>
+                                    <td class="cell-heatmap hm-high">210</td>
+                                    <td class="cell-heatmap hm-med">45</td>
+                                    <td class="cell-heatmap">344</td>
+                                </tr>
+                                <tr>
+                                    <td>HTTP Security Headers</td>
+                                    <td class="cell-heatmap hm-ok">0</td>
+                                    <td class="cell-heatmap hm-ok">0</td>
+                                    <td class="cell-heatmap hm-low">3</td>
+                                    <td class="cell-heatmap">3</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+
+    <!-- ════════════════════════════════════════
+     VIEW 2: ISSUE DETAIL
+════════════════════════════════════════ -->
+    <div id="view-issue" class="view">
+
+        <div class="issue-topbar">
+            <button class="back-btn" onclick="goBack()">← Back</button>
+            <div class="issue-topbar-meta">
+                <span class="crumb">Project Dashboard / Executive Alerts</span>
+                <span class="issue-title-small" id="issue-topbar-title">—</span>
+            </div>
+        </div>
+
+        <div class="issue-body">
+
+            <!-- Issue Header -->
+            <div class="issue-header-block">
+                <span class="issue-severity-badge" id="issue-badge">Critical</span>
+                <div class="issue-title-block">
+                    <h2 id="issue-h2">Issue Title</h2>
+                    <span class="issue-url-display" id="issue-url-display">global-corp.com/—</span>
+                </div>
+            </div>
+
+            <!-- 1. Description -->
+            <div class="issue-section">
+                <div class="issue-section-label">Description</div>
+                <div class="issue-section-content" id="issue-description">—</div>
+            </div>
+
+            <!-- 2. Triggers When -->
+            <div class="issue-section">
+                <div class="issue-section-label">Triggers When</div>
+                <div class="trigger-box" id="issue-triggers">—</div>
+            </div>
+
+            <!-- 3. How to Fix -->
+            <div class="issue-section">
+                <div class="issue-section-label">How to Fix</div>
+                <ol class="fix-steps" id="issue-fix-steps"></ol>
+            </div>
+
+            <!-- 4. Read Docs -->
+            <div class="issue-section">
+                <div class="issue-section-label">Documentation</div>
+                <a href="#" class="doc-btn" id="issue-doc-btn" target="_blank">
+                    <span>Read Documentation</span>
+                    <span class="doc-arrow">↗</span>
+                </a>
+            </div>
+
+            <!-- ─── Scanned Pages Section ─── -->
+            <div class="scanned-pages-section">
+                <h3>All Scanned Pages</h3>
+                <div class="section-sub">Full list of pages evaluated during this audit run · May 19, 2026</div>
+
+                <div class="pages-filter-bar">
+                    <input type="text" class="filter-input" id="pages-filter" placeholder="Filter by URL…"
+                        oninput="filterPages()">
+                    <span id="pages-count-label"
+                        style="font-size:11px; color:var(--ink-muted); white-space:nowrap;"></span>
+                </div>
+
+                <table class="pages-table" id="pages-table">
+                    <thead>
+                        <tr>
+                            <th>URL</th>
+                            <th>Issues</th>
+                            <th>Warnings</th>
+                            <th>Improvements</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pages-tbody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+                <div class="pages-table-footer">
+                    <span id="pages-footer-label">—</span>
+                    <span style="color: var(--ink-muted);">Click any row to view URL report</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <script>
+        /* ══════════════════════════════════════
+           DATA — Issue Definitions
+        ══════════════════════════════════════ */
+        const ISSUES = {
+            canonical: {
+                title: "Pages Missing Canonical Tags or Canonical Mismatch",
+                severity: "critical",
+                description: `A canonical tag (<code>&lt;link rel="canonical"&gt;</code>) tells search engines which version of a page is the <strong>authoritative, preferred URL</strong>. When it is absent or points to a different URL than the one being served, crawlers cannot reliably consolidate link equity, leading to duplicate content fragmentation, wasted crawl budget, and ranking dilution across URL variants.`,
+                triggers: `• The page's &lt;head&gt; contains no &lt;link rel="canonical" href="…"&gt; element\n• The canonical href does not match the page's own URL (self-referencing canonical missing)\n• The canonical points to a redirecting URL, a non-indexable page, or a 4xx/5xx\n• Multiple conflicting canonical signals exist (HTTP header vs. HTML tag)`,
+                fix: [
+                    "Add a self-referencing canonical tag in the &lt;head&gt; of every unique page: <code>&lt;link rel=\"canonical\" href=\"https://global-corp.com/page-slug\"&gt;</code>",
+                    "For paginated series, canonicalise page 1 or use rel=prev/next if appropriate — do not canonicalise all pages to page 1 blindly.",
+                    "Ensure CMS templates inject the canonical automatically on publish; audit template partials for the head block.",
+                    "Use Google Search Console's URL Inspection tool to confirm the canonical Google has selected matches your intent.",
+                    "Cross-check HTTP headers — some CDNs or servers emit a Link: header with a conflicting canonical value that overrides the HTML tag."
+                ],
+                doc: "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+            },
+            soft404: {
+                title: "Soft 404s Detected on Critical Conversion Paths",
+                severity: "critical",
+                description: `A soft 404 occurs when a server returns an <strong>HTTP 200 OK status</strong> for a page that functionally has no content — an empty cart page, a broken checkout step, a deleted product still "rendering." Search engines index these thin or empty pages, wasting crawl budget and potentially surfacing zero-value pages to users. On conversion paths this directly impacts revenue and lead generation.`,
+                triggers: `• Page returns HTTP 200 but body content is empty, shorter than ~200 words, or contains a "nothing here" message\n• Dynamic pages that load via JavaScript but render an empty shell on first response\n• CMS pages whose content was deleted but the URL route was not removed\n• Cart, onboarding, or checkout pages accessible without a session that show a blank state`,
+                fix: [
+                    "Return the correct HTTP status: deleted content → 410 Gone; moved content → 301 Redirect to the correct destination; temporarily unavailable → 503 with Retry-After.",
+                    "For session-dependent pages (checkout, onboarding), implement a server-side redirect to the appropriate entry point (e.g. /trial/signup → /login) when accessed without a valid session.",
+                    "Noindex session-gated conversion steps that should never appear in search: add <code>&lt;meta name=\"robots\" content=\"noindex,nofollow\"&gt;</code>.",
+                    "Set up a content-length threshold monitor in your crawl tool to flag pages with &lt;200 words of body text returning 200 OK.",
+                    "Review your CMS archive/delete workflow — ensure it triggers a redirect or status-code change, not a blank template render."
+                ],
+                doc: "https://developers.google.com/search/docs/crawling-indexing/http-network-errors#soft-404-errors"
+            },
+            llmstxt: {
+                title: "Missing llms.txt — AI Engine Signal Gap",
+                severity: "important",
+                description: `<strong>llms.txt</strong> is an emerging convention (analogous to robots.txt) that gives AI crawlers and large language models structured, curated information about your site: what it does, which pages are authoritative, what content is off-limits, and how the AI should represent your brand. Without it, AI engines must infer your site's purpose from unstructured crawl data, increasing the risk of <strong>hallucinated, incomplete, or brand-damaging representations</strong> in AI-generated answers.`,
+                triggers: `• No /llms.txt file found at the domain root (HTTP 404)\n• No /llms-full.txt companion file present\n• robots.txt contains no AI-agent-specific directives (GPTBot, ClaudeBot, PerplexityBot, etc.)\n• No structured site-level metadata available for AI engines to consume`,
+                fix: [
+                    "Create <code>/llms.txt</code> at your domain root. At minimum include: site name, one-sentence description, canonical homepage URL, and a list of key authoritative URLs with brief descriptions.",
+                    "Create a companion <code>/llms-full.txt</code> with expanded content: full product descriptions, FAQs, key facts, brand terminology, and any content you want AI engines to cite accurately.",
+                    "Update <code>robots.txt</code> to explicitly allow or control AI crawlers: GPTBot, ClaudeBot, PerplexityBot, anthropic-ai. Use Disallow selectively for proprietary data.",
+                    "Reference the llms.txt spec at llmstxt.org to ensure your file follows the standardised Markdown format that AI parsers expect.",
+                    "Monitor AI answer engines (ChatGPT, Perplexity, Claude) quarterly to verify your brand is represented accurately after implementation."
+                ],
+                doc: "https://llmstxt.org/"
+            },
+            schema: {
+                title: "Product Pages Missing Required Schema Attributes",
+                severity: "important",
+                description: `Product schema (<code>schema.org/Product</code>) enables Google and other engines to display <strong>Rich Results</strong> — price, availability, ratings, reviews — directly in the SERP. Missing required attributes like <code>name</code>, <code>offers</code>, <code>price</code>, <code>priceCurrency</code>, and <code>availability</code> prevent Rich Result eligibility entirely. For e-commerce and SaaS product pages, Rich Results significantly lift click-through rates and conversion from organic search.`,
+                triggers: `• Product page &lt;head&gt; or body contains no JSON-LD, Microdata, or RDFa with type Product\n• JSON-LD is present but missing required fields: name, offers, offers.price, offers.priceCurrency, offers.availability\n• Schema validation errors detected by Google's Rich Results Test\n• offers.availability value is not a valid schema.org/ItemAvailability enum (e.g. plain text "In Stock" instead of "https://schema.org/InStock")`,
+                fix: [
+                    "Add a <code>&lt;script type=\"application/ld+json\"&gt;</code> block to every product page with at minimum: <code>@type: Product</code>, <code>name</code>, <code>description</code>, <code>image</code>, <code>offers.price</code>, <code>offers.priceCurrency</code>, <code>offers.availability</code>.",
+                    "Use the full Schema.org enum for availability: <code>https://schema.org/InStock</code> — not plain text strings.",
+                    "Validate every product template against Google's Rich Results Test (search.google.com/test/rich-results) before deploying at scale.",
+                    "For SaaS products without a fixed price, use <code>offers.priceSpecification</code> or <code>offers.description</code> to describe pricing — do not omit the offers block entirely.",
+                    "Automate schema injection at the CMS template level so new products inherit valid markup on creation without manual effort."
+                ],
+                doc: "https://developers.google.com/search/docs/appearance/structured-data/product"
+            }
+        };
+
+        /* ══════════════════════════════════════
+           DATA — Scanned Pages (sample set)
+        ══════════════════════════════════════ */
+        const PAGES = [
+            { url: "global-corp.com/", issues: 0, warnings: 1, improvements: 3 },
+            { url: "global-corp.com/products/enterprise-suite", issues: 2, warnings: 3, improvements: 5 },
+            { url: "global-corp.com/products/starter-plan", issues: 2, warnings: 2, improvements: 4 },
+            { url: "global-corp.com/products/pro-bundle", issues: 1, warnings: 3, improvements: 6 },
+            { url: "global-corp.com/products/add-ons/api-access", issues: 1, warnings: 2, improvements: 3 },
+            { url: "global-corp.com/products/add-ons/analytics", issues: 1, warnings: 2, improvements: 4 },
+            { url: "global-corp.com/solutions/marketing", issues: 1, warnings: 1, improvements: 2 },
+            { url: "global-corp.com/solutions/sales-ops", issues: 1, warnings: 2, improvements: 3 },
+            { url: "global-corp.com/blog/category/updates", issues: 1, warnings: 0, improvements: 2 },
+            { url: "global-corp.com/pricing", issues: 0, warnings: 2, improvements: 4 },
+            { url: "global-corp.com/pricing?plan=annual", issues: 1, warnings: 1, improvements: 2 },
+            { url: "global-corp.com/landing/q2-promo", issues: 1, warnings: 1, improvements: 3 },
+            { url: "global-corp.com/resources/whitepapers", issues: 1, warnings: 0, improvements: 1 },
+            { url: "global-corp.com/checkout/confirm", issues: 1, warnings: 1, improvements: 0 },
+            { url: "global-corp.com/checkout/success", issues: 1, warnings: 0, improvements: 0 },
+            { url: "global-corp.com/trial/signup", issues: 1, warnings: 1, improvements: 1 },
+            { url: "global-corp.com/demo/request", issues: 1, warnings: 0, improvements: 2 },
+            { url: "global-corp.com/onboarding/step-1", issues: 1, warnings: 0, improvements: 0 },
+            { url: "global-corp.com/onboarding/step-2", issues: 1, warnings: 0, improvements: 0 },
+            { url: "global-corp.com/plans/upgrade", issues: 1, warnings: 1, improvements: 1 },
+            { url: "global-corp.com/cart/abandoned", issues: 1, warnings: 0, improvements: 0 },
+            { url: "global-corp.com/about", issues: 0, warnings: 1, improvements: 4 },
+            { url: "global-corp.com/contact", issues: 0, warnings: 0, improvements: 3 },
+            { url: "global-corp.com/careers", issues: 0, warnings: 2, improvements: 5 },
+            { url: "global-corp.com/blog/ai-trends-2026", issues: 0, warnings: 1, improvements: 2 },
+            { url: "global-corp.com/blog/product-update-v3", issues: 0, warnings: 0, improvements: 3 },
+            { url: "global-corp.com/store/category/tools", issues: 1, warnings: 2, improvements: 4 },
+            { url: "global-corp.com/store/category/integrations", issues: 1, warnings: 2, improvements: 3 },
+            { url: "global-corp.com/marketplace/featured", issues: 1, warnings: 1, improvements: 2 },
+            { url: "global-corp.com/sitemap.xml", issues: 0, warnings: 0, improvements: 0 },
+            { url: "global-corp.com/robots.txt", issues: 0, warnings: 1, improvements: 2 },
+            { url: "global-corp.com/legal/privacy", issues: 0, warnings: 0, improvements: 1 },
+            { url: "global-corp.com/legal/terms", issues: 0, warnings: 0, improvements: 1 },
+            { url: "global-corp.com/partners", issues: 0, warnings: 1, improvements: 3 },
+            { url: "global-corp.com/integrations/zapier", issues: 0, warnings: 1, improvements: 4 },
+            { url: "global-corp.com/integrations/slack", issues: 0, warnings: 1, improvements: 3 },
+            { url: "global-corp.com/security", issues: 0, warnings: 0, improvements: 2 },
+            { url: "global-corp.com/status", issues: 0, warnings: 0, improvements: 1 },
+        ];
+
+        /* ══════════════════════════════════════
+           STATE
+        ══════════════════════════════════════ */
+        let currentIssueKey = null;
+
+        /* ══════════════════════════════════════
+           DROPDOWN TOGGLE
+        ══════════════════════════════════════ */
+        function toggleDropdown(btn, key) {
+            const dd = document.getElementById('dd-' + key);
+            const isOpen = dd.classList.contains('open');
+            // close all
+            document.querySelectorAll('.url-dropdown').forEach(d => d.classList.remove('open'));
+            document.querySelectorAll('.dropdown-toggle').forEach(b => b.classList.remove('open'));
+            if (!isOpen) {
+                dd.classList.add('open');
+                btn.classList.add('open');
+                btn.textContent = '▴';
+            } else {
+                btn.textContent = '▾';
+            }
+        }
+
+        /* ══════════════════════════════════════
+           OPEN ISSUE DETAIL
+        ══════════════════════════════════════ */
+        function openIssue(key, url, severity) {
+            const data = ISSUES[key];
+            if (!data) return;
+            currentIssueKey = key;
+
+            // Topbar
+            document.getElementById('issue-topbar-title').textContent = data.title;
+
+            // Badge
+            const badge = document.getElementById('issue-badge');
+            badge.textContent = severity.charAt(0).toUpperCase() + severity.slice(1);
+            badge.className = 'issue-severity-badge badge-' + severity;
+
+            // Title & URL
+            document.getElementById('issue-h2').textContent = data.title;
+            document.getElementById('issue-url-display').textContent = url.trim();
+
+            // Description (allow inline HTML for code tags)
+            document.getElementById('issue-description').innerHTML = data.description;
+
+            // Triggers
+            const triggerBox = document.getElementById('issue-triggers');
+            triggerBox.textContent = data.triggers.replace(/\\n/g, '\n');
+            triggerBox.className = 'trigger-box' + (severity === 'important' ? ' important' : '');
+
+            // Fix Steps
+            const fixList = document.getElementById('issue-fix-steps');
+            fixList.innerHTML = '';
+            data.fix.forEach(step => {
+                const li = document.createElement('li');
+                li.innerHTML = step;
+                fixList.appendChild(li);
+            });
+
+            // Doc button
+            document.getElementById('issue-doc-btn').href = data.doc;
+
+            // Build pages table
+            buildPagesTable();
+
+            // Switch views
+            document.getElementById('view-dashboard').classList.remove('active');
+            document.getElementById('view-issue').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        /* ══════════════════════════════════════
+           BACK
+        ══════════════════════════════════════ */
+        function goBack() {
+            document.getElementById('view-issue').classList.remove('active');
+            document.getElementById('view-dashboard').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        /* ══════════════════════════════════════
+           PAGES TABLE
+        ══════════════════════════════════════ */
+        function buildPagesTable(filter = '') {
+            const tbody = document.getElementById('pages-tbody');
+            tbody.innerHTML = '';
+            const lower = filter.toLowerCase();
+            const filtered = PAGES.filter(p => p.url.toLowerCase().includes(lower));
+
+            filtered.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+            <td class="url-cell" title="${p.url}">${p.url}</td>
+            <td>${p.issues > 0 ? `<span class="pill pill-critical">${p.issues}</span>` : `<span style="color:var(--ink-muted)">—</span>`}</td>
+            <td>${p.warnings > 0 ? `<span class="pill pill-important">${p.warnings}</span>` : `<span style="color:var(--ink-muted)">—</span>`}</td>
+            <td>${p.improvements > 0 ? `<span class="pill pill-standard">${p.improvements}</span>` : `<span style="color:var(--ink-muted)">—</span>`}</td>
+        `;
+                tbody.appendChild(tr);
+            });
+
+            const label = filter
+                ? `Showing ${filtered.length} of ${PAGES.length} pages`
+                : `${PAGES.length} pages scanned`;
+            document.getElementById('pages-footer-label').textContent = label;
+            document.getElementById('pages-count-label').textContent = filter ? `${filtered.length} results` : '';
+        }
+
+        function filterPages() {
+            const val = document.getElementById('pages-filter').value;
+            buildPagesTable(val);
+        }
+
+        /* ══════════════════════════════════════
+           NAV CLICKS (dashboard)
+        ══════════════════════════════════════ */
+        document.addEventListener('DOMContentLoaded', () => {
+            const links = document.querySelectorAll('.nav-link');
+            links.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    links.forEach(l => l.classList.remove('active'));
+                    e.target.classList.add('active');
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>
