@@ -1,0 +1,42 @@
+name: Auto Generate Portfolio
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run Generator
+        run: python generate.py
+
+      - name: Commit Updated projects.json
+        run: |
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add projects.json
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Auto-update projects.json"
+            git push
+          fi
