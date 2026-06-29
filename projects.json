@@ -9,7 +9,19 @@
     "tags": [
       "full-dashboard-v2"
     ],
-    "lastUpdated": "2026-05-19"
+    "lastUpdated": "2026-06-29"
+  },
+  {
+    "name": "Project A",
+    "path": "./full-dashboard-v3/",
+    "folder": "full-dashboard-v3",
+    "category": "General",
+    "description": "Beautiful WebGL particle simulation using Three.js.",
+    "thumbnail": "./full-dashboard-v3/thumbnail.png",
+    "tags": [
+      "full-dashboard-v3"
+    ],
+    "lastUpdated": "2026-06-29"
   },
   {
     "name": "Project A",
@@ -21,6 +33,6 @@
     "tags": [
       "full-dashboard-v1"
     ],
-    "lastUpdated": "2026-05-19"
+    "lastUpdated": "2026-06-29"
   }
 ]
