@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XeoPix Audit: ACME Digital</title>
+
+    <!-- Tailwind CSS for layout utility -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Distinctive Typography: 
+         Bricolage Grotesque for brutalist/impactful headers, 
+         Newsreader for editorial text, 
+         JetBrains Mono for precise data representation -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=JetBrains+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            /* Palette: Editorial / Technical Brutalism */
+            --bg-paper: #EFEFE9;
+            --ink-black: #0D0D0D;
+            --ink-light: #4A4A4A;
+            --crit-red: #FA3311;
+            --warn-yellow: #F0A500;
+            --pass-green: #00A650;
+            --border-heavy: 3px solid var(--ink-black);
+            --border-light: 1px solid var(--ink-black);
+            --border-dashed: 1px dashed #A0A0A0;
+        }
+
+        body {
+            background-color: var(--bg-paper);
+            color: var(--ink-black);
+            font-family: 'Newsreader', serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            selection-background-color: var(--ink-black);
+            selection-color: var(--bg-paper);
+        }
+
+        ::selection {
+            background: var(--ink-black);
+            color: var(--bg-paper);
+        }
+
+        /* SVG Noise Texture for tactile feel */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.35;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+            mix-blend-mode: multiply;
+        }
+
+        /* Typography Classes */
+        .font-display {
+            font-family: 'Bricolage Grotesque', sans-serif;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Structural Elements */
+        .border-t-heavy {
+            border-top: var(--border-heavy);
+        }
+
+        .border-b-heavy {
+            border-bottom: var(--border-heavy);
+        }
+
+        .border-y-heavy {
+            border-top: var(--border-heavy);
+            border-bottom: var(--border-heavy);
+        }
+
+        .border-l-heavy {
+            border-left: var(--border-heavy);
+        }
+
+        .border-t-light {
+            border-top: var(--border-light);
+        }
+
+        .border-b-light {
+            border-bottom: var(--border-light);
+        }
+
+        .border-x-light {
+            border-left: var(--border-light);
+            border-right: var(--border-light);
+        }
+
+        /* Neo-brutalist buttons/tags */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.15rem 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            border: var(--border-light);
+            background: var(--bg-paper);
+            font-weight: 700;
+        }
+
+        .tag-crit {
+            background: var(--crit-red);
+            color: white;
+            border-color: var(--crit-red);
+        }
+
+        .tag-warn {
+            background: var(--warn-yellow);
+            color: var(--ink-black);
+            border-color: var(--warn-yellow);
+        }
+
+        .tag-pass {
+            background: var(--pass-green);
+            color: white;
+            border-color: var(--pass-green);
+        }
+
+        /* Custom Accordion Styling */
+        details {
+            border-bottom: var(--border-light);
+            background: transparent;
+            transition: background 0.2s ease;
+        }
+
+        details[open] {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 1.25rem 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary:focus {
+            outline: none;
+        }
+
+        summary .toggle-icon {
+            font-family: 'JetBrains Mono';
+            font-size: 1.5rem;
+            line-height: 1;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        details[open] summary .toggle-icon {
+            transform: rotate(45deg);
+        }
+
+        .details-content {
+            padding-bottom: 2rem;
+            animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scroll Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Data Grid Hover Effects */
+        .data-row {
+            transition: background-color 0.1s;
+        }
+
+        .data-row:hover {
+            background-color: var(--ink-black);
+            color: var(--bg-paper);
+        }
+
+        .data-row:hover .tag {
+            border-color: var(--bg-paper);
+        }
+
+        .data-row:hover .text-ink-light {
+            color: #A0A0A0;
+        }
+
+        /* Meter Animation */
+        .meter-bar {
+            transform-origin: left;
+            animation: fillMeter 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes fillMeter {
+            from {
+                transform: scaleX(0);
+            }
+
+            to {
+                transform: scaleX(1);
+            }
+        }
+
+        /* Ensure links look editorial */
+        a {
+            text-decoration-thickness: 1px;
+            text-underline-offset: 3px;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--crit-red);
+            text-decoration-color: var(--crit-red);
+        }
+    </style>
+</head>
+
+<body class="relative min-h-screen pb-32">
+    <div class="noise-overlay"></div>
+
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-8 pt-12">
+
+        <header class="mb-16 reveal active">
+            <div class="flex justify-between items-end border-b-heavy pb-4 mb-4">
+                <h1 class="font-display text-5xl md:text-7xl font-extrabold uppercase tracking-tight leading-none">
+                    XeoPix <br /> Crawl Report
+                </h1>
+                <div class="text-right font-mono text-sm hidden md:block">
+                    <div>DOC REF: XPX-2026-05-19</div>
+                    <div>CONFIDENTIAL AUDIT</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 font-mono text-xs uppercase tracking-wider">
+                <div class="col-span-2 md:col-span-1">
+                    <div class="text-gray-500 mb-1">Target Site</div>
+                    <div class="font-bold text-base truncate"><a href="https://acme-digital.com"
+                            class="underline">acme-digital.com</a></div>
+                </div>
+                <div>
+                    <div class="text-gray-500 mb-1">Crawl Date</div>
+                    <div class="font-bold">19 May 2026<br />09:14 UTC</div>
+                </div>
+                <div>
+                    <div class="text-gray-500 mb-1">Pages Crawled</div>
+                    <div class="font-bold text-lg">16</div>
+                </div>
+                <div>
+                    <div class="text-gray-500 mb-1">Engine</div>
+                    <div class="font-bold">XeoPix v3.2.1</div>
+                </div>
+                <div>
+                    <div class="text-gray-500 mb-1">Duration</div>
+                    <div class="font-bold">4m 22s</div>
+                </div>
+            </div>
+        </header>
+
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-24 reveal">
+            <!-- Large Score -->
+            <div class="lg:col-span-5 border-t-light border-b-light py-8 flex flex-col justify-center">
+                <div class="font-mono text-sm uppercase tracking-widest mb-4">Overall Site Health</div>
+                <div class="flex items-baseline gap-4">
+                    <div class="font-display text-9xl md:text-[12rem] font-black leading-none tracking-tighter"
+                        style="color: var(--crit-red)">
+                        48
+                    </div>
+                    <div class="font-mono text-2xl">/100</div>
+                </div>
+
+                <!-- Custom Brutalist Meter -->
+                <div class="mt-8 border-light h-8 relative w-full flex overflow-hidden bg-[#EFEFE9]">
+                    <!-- Using grid background for empty space -->
+                    <div class="absolute inset-0"
+                        style="background-image: radial-gradient(var(--ink-light) 1px, transparent 1px); background-size: 8px 8px; opacity: 0.2;">
+                    </div>
+                    <div class="absolute top-0 left-0 h-full meter-bar"
+                        style="width: 48%; background: var(--crit-red); border-right: var(--border-light);"></div>
+                </div>
+
+                <div class="mt-4 font-mono text-xs flex justify-between uppercase">
+                    <span class="tag tag-crit">⚠️ Poor Status</span>
+                    <span>Deductions applied across 193 checks.</span>
+                </div>
+            </div>
+
+            <!-- Stats Breakdown -->
+            <div class="lg:col-span-7 flex flex-col justify-between py-8">
+                <div>
+                    <h2 class="font-display text-2xl font-bold uppercase mb-6 border-b-light pb-2">Check Results
+                        Breakdown</h2>
+                    <div class="space-y-4 font-mono text-sm">
+                        <div class="flex justify-between items-center border-b border-dashed pb-2">
+                            <div class="flex items-center gap-3"><span
+                                    class="w-3 h-3 block bg-[var(--pass-green)] rounded-none"></span> ✅ Passing</div>
+                            <div class="flex gap-8"><span class="w-12 text-right">97</span><span
+                                    class="w-12 text-right text-gray-500">50.3%</span></div>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-dashed pb-2">
+                            <div class="flex items-center gap-3"><span
+                                    class="w-3 h-3 block bg-[var(--warn-yellow)] rounded-none"></span> ⚠️ Warning
+                                (Important)</div>
+                            <div class="flex gap-8"><span class="w-12 text-right">63</span><span
+                                    class="w-12 text-right text-gray-500">32.6%</span></div>
+                        </div>
+                        <div class="flex justify-between items-center border-b-light pb-2">
+                            <div class="flex items-center gap-3"><span
+                                    class="w-3 h-3 block bg-[var(--crit-red)] rounded-none"></span> ❌ Failing (Critical)
+                            </div>
+                            <div class="flex gap-8"><span class="w-12 text-right">33</span><span
+                                    class="w-12 text-right text-gray-500">17.1%</span></div>
+                        </div>
+                        <div class="flex justify-between items-center font-bold pt-2">
+                            <div>Total checks evaluated</div>
+                            <div class="text-right">193</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 bg-white border-light p-6 relative">
+                    <div class="absolute -top-3 left-4 bg-[var(--bg-paper)] px-2 font-mono text-xs font-bold">ALGORITHM
+                        WEIGHTING</div>
+                    <p class="text-lg leading-relaxed">
+                        Score is weighted heavily against critical failures impacting indexability and Core Web Vitals.
+                        <strong class="font-display uppercase tracking-wide">Immediate attention required.</strong>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-24 reveal">
+            <div class="bg-[var(--ink-black)] text-[var(--bg-paper)] p-8 md:p-12 relative overflow-hidden">
+                <!-- Abstract graphic element -->
+                <div class="absolute -right-20 -top-20 opacity-10 pointer-events-none">
+                    <svg width="400" height="400" viewBox="0 0 100 100">
+                        <path d="M0,0 L100,100 M100,0 L0,100" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                </div>
+
+                <h2 class="font-display text-4xl md:text-5xl font-bold uppercase mb-4 flex items-center gap-4">
+                    <span class="text-[var(--crit-red)]">🚨</span> Critical Alert Panel
+                </h2>
+                <p class="font-mono text-sm max-w-2xl mb-12 text-gray-400">
+                    The following CRITICAL issues require immediate attention. They directly impact indexability, Core
+                    Web Vitals, and trust signals.
+                </p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left font-mono text-sm whitespace-nowrap">
+                        <thead class="border-b border-gray-700 text-gray-400">
+                            <tr>
+                                <th class="py-3 px-4 font-normal">#</th>
+                                <th class="py-3 px-4 font-normal w-1/2">Issue</th>
+                                <th class="py-3 px-4 font-normal">Affected</th>
+                                <th class="py-3 px-4 font-normal">Category</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800">
+                            <tr class="hover:bg-gray-800 transition-colors">
+                                <td class="py-4 px-4 text-[var(--crit-red)]">01</td>
+                                <td class="py-4 px-4 whitespace-normal font-bold">robots.txt incorrectly blocks /blog/
+                                    section</td>
+                                <td class="py-4 px-4">4 pages de-indexed</td>
+                                <td class="py-4 px-4 text-gray-400">Crawl Behaviour</td>
+                            </tr>
+                            <tr class="hover:bg-gray-800 transition-colors">
+                                <td class="py-4 px-4 text-[var(--crit-red)]">02</td>
+                                <td class="py-4 px-4 whitespace-normal font-bold">/staging/ is publicly accessible and
+                                    crawlable</td>
+                                <td class="py-4 px-4">Site-wide risk</td>
+                                <td class="py-4 px-4 text-gray-400">Crawl Behaviour</td>
+                            </tr>
+                            <tr class="hover:bg-gray-800 transition-colors">
+                                <td class="py-4 px-4 text-[var(--crit-red)]">03</td>
+                                <td class="py-4 px-4 whitespace-normal font-bold">Broken internal links returning HTTP
+                                    404</td>
+                                <td class="py-4 px-4">2 links</td>
+                                <td class="py-4 px-4 text-gray-400">Crawl Behaviour</td>
+                            </tr>
+                            <tr class="hover:bg-gray-800 transition-colors">
+                                <td class="py-4 px-4 text-[var(--crit-red)]">04</td>
+                                <td class="py-4 px-4 whitespace-normal font-bold">LCP hero image has loading="lazy"</td>
+                                <td class="py-4 px-4">3 pages</td>
+                                <td class="py-4 px-4 text-gray-400">Image Analysis</td>
+                            </tr>
+                            <tr class="hover:bg-gray-800 transition-colors">
+                                <td class="py-4 px-4 text-[var(--crit-red)]">05</td>
+                                <td class="py-4 px-4 whitespace-normal font-bold">Canonical tag missing entirely</td>
+                                <td class="py-4 px-4">4 pages</td>
+                                <td class="py-4 px-4 text-gray-400">Page SEO Basics</td>
+                            </tr>
+                            <tr class="hover:bg-gray-800 transition-colors">
+                                <td class="py-4 px-4 text-[var(--crit-red)]">06</td>
+                                <td class="py-4 px-4 whitespace-normal font-bold">Mixed active content — HTTP scripts on
+                                    HTTPS page</td>
+                                <td class="py-4 px-4">2 pages</td>
+                                <td class="py-4 px-4 text-gray-400">HTTP Security</td>
+                            </tr>
+                            <tr class="hover:bg-gray-800 transition-colors">
+                                <td class="py-4 px-4 text-[var(--crit-red)]">07</td>
+                                <td class="py-4 px-4 whitespace-normal font-bold">Product schema entirely missing on
+                                    product page</td>
+                                <td class="py-4 px-4">1 page</td>
+                                <td class="py-4 px-4 text-gray-400">Structured Data</td>
+                            </tr>
+                            <tr class="hover:bg-gray-800 transition-colors">
+                                <td class="py-4 px-4 text-[var(--crit-red)]">08</td>
+                                <td class="py-4 px-4 whitespace-normal font-bold">Content hidden on mobile via
+                                    display:none</td>
+                                <td class="py-4 px-4">1 page</td>
+                                <td class="py-4 px-4 text-gray-400">JavaScript SEO</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-24 reveal">
+            <div class="flex flex-col md:flex-row justify-between items-baseline mb-8 border-b-heavy pb-4">
+                <h2 class="font-display text-4xl font-bold uppercase tracking-tight">⚡ Top Priority Fixes</h2>
+                <span class="font-mono text-sm text-[var(--ink-light)] mt-2 md:mt-0">High-impact / Low-effort (Quick
+                    Wins)</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card 1 -->
+                <div
+                    class="border-light bg-white p-6 relative group hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(13,13,13,1)] transition-all duration-200">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-[var(--crit-red)]"></div>
+                    <div class="font-mono text-xs mb-4 text-gray-500">Rank 01</div>
+                    <h3
+                        class="font-display text-xl font-bold mb-4 leading-tight group-hover:text-[var(--crit-red)] transition-colors">
+                        Fix robots.txt to un-block /blog/</h3>
+                    <p class="text-sm mb-6 line-clamp-3">Currently de-indexing 4 content pages. Resolving unlocks
+                        immediate indexing.</p>
+                    <div class="font-mono text-xs flex justify-between items-center border-t-light pt-4">
+                        <span class="tag tag-crit">Critical</span>
+                        <span class="text-gray-500">Low Effort</span>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div
+                    class="border-light bg-white p-6 relative group hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(13,13,13,1)] transition-all duration-200">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-[var(--crit-red)]"></div>
+                    <div class="font-mono text-xs mb-4 text-gray-500">Rank 02</div>
+                    <h3
+                        class="font-display text-xl font-bold mb-4 leading-tight group-hover:text-[var(--crit-red)] transition-colors">
+                        Add &lt;link rel="canonical"&gt;</h3>
+                    <p class="text-sm mb-6 line-clamp-3">4 missing pages require canonical tags to prevent duplicate
+                        content issues.</p>
+                    <div class="font-mono text-xs flex justify-between items-center border-t-light pt-4">
+                        <span class="tag tag-crit">Critical</span>
+                        <span class="text-gray-500">Low Effort</span>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div
+                    class="border-light bg-white p-6 relative group hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(13,13,13,1)] transition-all duration-200">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-[var(--crit-red)]"></div>
+                    <div class="font-mono text-xs mb-4 text-gray-500">Rank 03</div>
+                    <h3
+                        class="font-display text-xl font-bold mb-4 leading-tight group-hover:text-[var(--crit-red)] transition-colors">
+                        Remove loading="lazy" from LCP</h3>
+                    <p class="text-sm mb-6 line-clamp-3">3 pages delay Largest Contentful Paint due to incorrect
+                        attribute on hero images.</p>
+                    <div class="font-mono text-xs flex justify-between items-center border-t-light pt-4">
+                        <span class="tag tag-crit">Critical</span>
+                        <span class="text-gray-500">Low Effort</span>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div
+                    class="border-light bg-white p-6 relative group hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(13,13,13,1)] transition-all duration-200">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-[var(--warn-yellow)]"></div>
+                    <div class="font-mono text-xs mb-4 text-gray-500">Rank 05</div>
+                    <h3
+                        class="font-display text-xl font-bold mb-4 leading-tight group-hover:text-[var(--warn-yellow)] transition-colors">
+                        Add HSTS and CSP headers</h3>
+                    <p class="text-sm mb-6 line-clamp-3">Site-wide fix required via server config to ensure basic HTTP
+                        security standards.</p>
+                    <div class="font-mono text-xs flex justify-between items-center border-t-light pt-4">
+                        <span class="tag tag-warn">Important</span>
+                        <span class="text-gray-500">Low Effort</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-24 reveal">
+            <h2 class="font-display text-4xl font-bold uppercase tracking-tight mb-8 border-b-heavy pb-4">📈 Issues by
+                Category</h2>
+
+            <div class="border-light bg-white">
+                <div class="grid grid-cols-12 gap-0 font-mono text-xs uppercase font-bold border-b-light bg-[#EFEFE9]">
+                    <div class="col-span-6 md:col-span-4 p-4 border-r-light">Category</div>
+                    <div class="col-span-2 hidden md:block p-4 border-r-light text-center">Score</div>
+                    <div class="col-span-2 p-4 border-r-light text-center text-[var(--crit-red)]">❌ Crit</div>
+                    <div class="col-span-2 p-4 border-r-light text-center text-[var(--warn-yellow)]">⚠️ Warn</div>
+                    <div class="col-span-2 p-4 text-center text-[var(--pass-green)]">✅ Pass</div>
+                </div>
+
+                <!-- Row 1 -->
+                <div class="grid grid-cols-12 gap-0 border-b-light data-row cursor-crosshair">
+                    <div class="col-span-6 md:col-span-4 p-4 border-r-light flex items-center font-bold">HTTP Security
+                        Headers</div>
+                    <div class="col-span-2 hidden md:flex p-4 border-r-light items-center justify-center font-mono">25%
+                    </div>
+                    <div class="col-span-2 p-4 border-r-light text-center font-mono text-lg font-bold">2</div>
+                    <div class="col-span-2 p-4 border-r-light text-center font-mono text-lg">4</div>
+                    <div class="col-span-2 p-4 text-center font-mono text-lg text-gray-400">2</div>
+                </div>
+                <!-- Row 2 -->
+                <div class="grid grid-cols-12 gap-0 border-b-light data-row cursor-crosshair">
+                    <div class="col-span-6 md:col-span-4 p-4 border-r-light flex items-center font-bold">Page SEO Basics
+                    </div>
+                    <div class="col-span-2 hidden md:flex p-4 border-r-light items-center justify-center font-mono">23%
+                    </div>
+                    <div class="col-span-2 p-4 border-r-light text-center font-mono text-lg font-bold">6</div>
+                    <div class="col-span-2 p-4 border-r-light text-center font-mono text-lg">4</div>
+                    <div class="col-span-2 p-4 text-center font-mono text-lg text-gray-400">0</div>
+                </div>
+                <!-- Row 3 -->
+                <div class="grid grid-cols-12 gap-0 border-b-light data-row cursor-crosshair">
+                    <div class="col-span-6 md:col-span-4 p-4 border-r-light flex items-center font-bold">Image Analysis
+                    </div>
+                    <div class="col-span-2 hidden md:flex p-4 border-r-light items-center justify-center font-mono">30%
+                    </div>
+                    <div class="col-span-2 p-4 border-r-light text-center font-mono text-lg font-bold">2</div>
+                    <div class="col-span-2 p-4 border-r-light text-center font-mono text-lg">5</div>
+                    <div class="col-span-2 p-4 text-center font-mono text-lg text-gray-400">1</div>
+                </div>
+                <!-- Row 4 -->
+                <div class="grid grid-cols-12 gap-0 border-b-light data-row cursor-crosshair">
+                    <div class="col-span-6 md:col-span-4 p-4 border-r-light flex items-center font-bold">Crawl Behaviour
+                    </div>
+                    <div class="col-span-2 hidden md:flex p-4 border-r-light items-center justify-center font-mono">50%
+                    </div>
+                    <div class="col-span-2 p-4 border-r-light text-center font-mono text-lg font-bold">3</div>
+                    <div class="col-span-2 p-4 border-r-light text-center font-mono text-lg">7</div>
+                    <div class="col-span-2 p-4 text-center font-mono text-lg text-gray-400">10</div>
+                </div>
+                <!-- Row 5 -->
+                <div class="grid grid-cols-12 gap-0 border-b-light data-row cursor-crosshair">
+                    <div class="col-span-6 md:col-span-4 p-4 border-r-light flex items-center font-bold">Structured Data
+                        & Rich Results</div>
+                    <div class="col-span-2 hidden md:flex p-4 border-r-light items-center justify-center font-mono">45%
+                    </div>
+                    <div class="col-span-2 p-4 border-r-light text-center font-mono text-lg font-bold">2</div>
+                    <div class="col-span-2 p-4 border-r-light text-center font-mono text-lg">5</div>
+                    <div class="col-span-2 p-4 text-center font-mono text-lg text-gray-400">9</div>
+                </div>
+                <!-- Row 6 -->
+                <div class="grid grid-cols-12 gap-0 border-b-light data-row cursor-crosshair">
+                    <div class="col-span-6 md:col-span-4 p-4 border-r-light flex items-center font-bold">JavaScript SEO
+                        Rendering</div>
+                    <div class="col-span-2 hidden md:flex p-4 border-r-light items-center justify-center font-mono">29%
+                    </div>
+                    <div class="col-span-2 p-4 border-r-light text-center font-mono text-lg font-bold">3</div>
+                    <div class="col-span-2 p-4 border-r-light text-center font-mono text-lg">2</div>
+                    <div class="col-span-2 p-4 text-center font-mono text-lg text-gray-400">2</div>
+                </div>
+                <!-- Row 7 (Total) -->
+                <div
+                    class="grid grid-cols-12 gap-0 bg-[var(--ink-black)] text-[var(--bg-paper)] font-display uppercase font-bold text-lg">
+                    <div class="col-span-6 md:col-span-6 p-4 border-r border-gray-700">Total Issues Detected</div>
+                    <div class="col-span-2 p-4 border-r border-gray-700 text-center text-[var(--crit-red)]">26</div>
+                    <div class="col-span-2 p-4 border-r border-gray-700 text-center text-[var(--warn-yellow)]">64</div>
+                    <div class="col-span-2 p-4 text-center text-[var(--pass-green)]">19</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-24 reveal">
+            <h2 class="font-display text-4xl font-bold uppercase tracking-tight mb-8 border-b-heavy pb-4">📋 Crawled URL
+                Inventory</h2>
+
+            <div class="space-y-4">
+                <!-- URL Item 1 -->
+                <div
+                    class="border-light bg-white p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:shadow-[4px_4px_0px_0px_rgba(13,13,13,1)] transition-shadow">
+                    <div>
+                        <a href="#url-report--homepage" class="font-mono font-bold text-lg break-all">/</a>
+                        <div class="text-sm text-[var(--ink-light)] mt-1">ACME Digital — Growth Marketing Agency</div>
+                    </div>
+                    <div class="flex items-center gap-4 whitespace-nowrap">
+                        <span class="font-mono text-sm">11 issues</span>
+                        <span class="tag tag-crit w-24 justify-center">Critical</span>
+                    </div>
+                </div>
+
+                <!-- URL Item 2 -->
+                <div
+                    class="border-light bg-white p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:shadow-[4px_4px_0px_0px_rgba(13,13,13,1)] transition-shadow">
+                    <div>
+                        <a href="#url-report--products-analytics-suite"
+                            class="font-mono font-bold text-lg break-all">/products/analytics-suite</a>
+                        <div class="text-sm text-[var(--ink-light)] mt-1 font-mono text-xs">(JS-injected — not in SSR
+                            HTML)</div>
+                    </div>
+                    <div class="flex items-center gap-4 whitespace-nowrap">
+                        <span class="font-mono text-sm font-bold text-[var(--crit-red)]">12 issues</span>
+                        <span class="tag tag-crit w-24 justify-center">Critical</span>
+                    </div>
+                </div>
+
+                <!-- URL Item 3 -->
+                <div
+                    class="border-light bg-white p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:shadow-[4px_4px_0px_0px_rgba(13,13,13,1)] transition-shadow">
+                    <div>
+                        <a href="#" class="font-mono font-bold text-lg break-all">/blog/what-is-technical-seo</a>
+                        <div class="text-sm text-[var(--ink-light)] mt-1">What Is Technical SEO?</div>
+                    </div>
+                    <div class="flex items-center gap-4 whitespace-nowrap">
+                        <span class="font-mono text-sm">10 issues</span>
+                        <span class="tag tag-crit w-24 justify-center">Critical</span>
+                    </div>
+                </div>
+
+                <!-- URL Item 4 -->
+                <div
+                    class="border-light bg-white p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:shadow-[4px_4px_0px_0px_rgba(13,13,13,1)] transition-shadow">
+                    <div>
+                        <a href="#" class="font-mono font-bold text-lg break-all">/services/seo-consulting</a>
+                        <div class="text-sm text-[var(--ink-light)] mt-1">SEO Consulting | ACME Digital</div>
+                    </div>
+                    <div class="flex items-center gap-4 whitespace-nowrap">
+                        <span class="font-mono text-sm">6 issues</span>
+                        <span class="tag tag-warn w-24 justify-center">Warning</span>
+                    </div>
+                </div>
+
+                <div class="text-center pt-4">
+                    <button
+                        class="font-display font-bold uppercase tracking-widest text-sm border-b-heavy pb-1 hover:text-[var(--crit-red)] transition-colors">View
+                        All 16 URLs</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-32 reveal">
+            <h2 class="font-display text-4xl font-bold uppercase tracking-tight mb-12 border-b-heavy pb-4">🔍 URL
+                In-Depth Reports</h2>
+
+            <!-- Report: Homepage -->
+            <div class="mb-12" id="url-report--homepage">
+                <div
+                    class="bg-[var(--ink-black)] text-white p-6 border-light mb-6 flex flex-col md:flex-row justify-between items-baseline gap-4">
+                    <h3 class="font-mono text-xl font-bold break-all">https://acme-digital.com/</h3>
+                    <div class="font-mono text-xs flex gap-4 text-gray-400">
+                        <span>11 issues</span>
+                        <span class="text-[var(--crit-red)]">🔴 5 Crit</span>
+                        <span class="text-[var(--warn-yellow)]">🟡 6 Warn</span>
+                    </div>
+                </div>
+
+                <!-- Issue Accordions -->
+                <div class="bg-white border-light px-6">
+
+                    <details class="group">
+                        <summary>
+                            <div class="flex items-start gap-4">
+                                <span class="tag tag-crit shrink-0 mt-1">Critical</span>
+                                <div>
+                                    <h4 class="font-display text-xl font-bold">LCP Hero Image Has loading="lazy"</h4>
+                                    <div class="font-mono text-xs text-gray-500 mt-1">Check #160 • Image Analysis</div>
+                                </div>
+                            </div>
+                            <span class="toggle-icon group-open:text-[var(--crit-red)]">+</span>
+                        </summary>
+                        <div class="details-content">
+                            <p class="mb-4 text-lg">The Largest Contentful Paint element on this page (<code
+                                    class="font-mono text-sm bg-gray-100 px-1">.hero-bg img</code>) has a <code
+                                    class="font-mono text-sm bg-gray-100 px-1">loading="lazy"</code> attribute. Lazy
+                                loading intentionally defers resource fetching until the element is near the viewport —
+                                for the LCP element, it is always in the viewport immediately, making lazy loading
+                                counterproductive and directly worsening Core Web Vitals.</p>
+
+                            <h5 class="font-bold uppercase font-mono text-xs mb-2 tracking-widest">How to Fix</h5>
+                            <p class="mb-4">Remove <code
+                                    class="font-mono text-sm bg-gray-100 px-1">loading="lazy"</code> from the hero image
+                                entirely. For the LCP image specifically, also add a preload link in the head and set
+                                fetchpriority.</p>
+
+                            <div
+                                class="bg-[var(--ink-black)] text-gray-300 font-mono text-sm p-4 overflow-x-auto border-l-4 border-[var(--crit-red)]">
+                                <pre><code><span class="text-gray-500">&lt;!-- Before (broken) --&gt;</span>
+&lt;img src="/images/hero-banner.jpg" <span class="text-[var(--crit-red)] font-bold">loading="lazy"</span> class="hero-bg"&gt;
+
+<span class="text-gray-500">&lt;!-- After (correct) --&gt;</span>
+&lt;img src="/images/hero-banner.webp" <span class="text-[var(--pass-green)] font-bold">fetchpriority="high"</span> class="hero-bg"
+     width="1440" height="720" alt="ACME Digital — Growth Marketing Agency"&gt;</code></pre>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="group">
+                        <summary>
+                            <div class="flex items-start gap-4">
+                                <span class="tag tag-crit shrink-0 mt-1">Critical</span>
+                                <div>
+                                    <h4 class="font-display text-xl font-bold">Organization Schema Missing</h4>
+                                    <div class="font-mono text-xs text-gray-500 mt-1">Check #57 • Structured Data</div>
+                                </div>
+                            </div>
+                            <span class="toggle-icon group-open:text-[var(--crit-red)]">+</span>
+                        </summary>
+                        <div class="details-content">
+                            <p class="mb-4 text-lg">The homepage has no Organization schema in JSON-LD or microdata
+                                format. The homepage is the primary page for brand entity recognition. Without it,
+                                Google's Knowledge Graph has no structured starting point for understanding the brand
+                                entity.</p>
+                            <h5 class="font-bold uppercase font-mono text-xs mb-2 tracking-widest">How to Fix</h5>
+                            <p class="mb-4">Add the following JSON-LD block to the <code
+                                    class="font-mono text-sm bg-gray-100 px-1">&lt;head&gt;</code> of the homepage.
+                                Serve it server-side (not JS-injected).</p>
+                            <div
+                                class="bg-[var(--ink-black)] text-gray-300 font-mono text-sm p-4 overflow-x-auto border-l-4 border-[var(--pass-green)]">
+                                <pre><code>&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "ACME Digital",
+  "url": "https://acme-digital.com"
+}
+&lt;/script&gt;</code></pre>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="group">
+                        <summary>
+                            <div class="flex items-start gap-4">
+                                <span class="tag tag-warn shrink-0 mt-1">Important</span>
+                                <div>
+                                    <h4 class="font-display text-xl font-bold">Render-Blocking Scripts in &lt;head&gt;
+                                    </h4>
+                                    <div class="font-mono text-xs text-gray-500 mt-1">Check #26 • Performance</div>
+                                </div>
+                            </div>
+                            <span class="toggle-icon group-open:text-[var(--warn-yellow)]">+</span>
+                        </summary>
+                        <div class="details-content">
+                            <p class="mb-4 text-lg">Two JavaScript files (vendor.js, analytics-helper.js) are loaded in
+                                the <code class="font-mono text-sm bg-gray-100 px-1">&lt;head&gt;</code> without defer
+                                or async attributes. The browser halts HTML parsing until these scripts are downloaded,
+                                parsed, and executed, delaying First Contentful Paint.</p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Report: Analytics Suite -->
+            <div class="mb-12" id="url-report--products-analytics-suite">
+                <div
+                    class="bg-[var(--ink-black)] text-white p-6 border-light mb-6 flex flex-col md:flex-row justify-between items-baseline gap-4 relative overflow-hidden">
+                    <!-- Warning stripes pattern -->
+                    <div class="absolute inset-0 opacity-10 pointer-events-none"
+                        style="background: repeating-linear-gradient(45deg, transparent, transparent 10px, var(--crit-red) 10px, var(--crit-red) 20px);">
+                    </div>
+
+                    <div class="relative z-10">
+                        <h3 class="font-mono text-xl font-bold break-all text-[var(--crit-red)]">
+                            https://acme-digital.com/products/analytics-suite</h3>
+                        <div class="font-bold font-display uppercase mt-2 tracking-widest text-sm">Severely Compromised
+                            URL</div>
+                    </div>
+                    <div class="font-mono text-xs flex gap-4 text-gray-400 relative z-10">
+                        <span class="text-white font-bold">12 issues</span>
+                        <span class="text-[var(--crit-red)]">🔴 7 Crit</span>
+                        <span class="text-[var(--warn-yellow)]">🟡 5 Warn</span>
+                    </div>
+                </div>
+
+                <!-- Issue Accordions -->
+                <div class="bg-white border-light px-6">
+
+                    <details class="group" open>
+                        <summary>
+                            <div class="flex items-start gap-4">
+                                <span class="tag tag-crit shrink-0 mt-1">Critical</span>
+                                <div>
+                                    <h4 class="font-display text-xl font-bold">Page is Client-Side Rendered Only</h4>
+                                    <div class="font-mono text-xs text-gray-500 mt-1">Check #35 • JavaScript SEO
+                                        Rendering</div>
+                                </div>
+                            </div>
+                            <span class="toggle-icon group-open:text-[var(--crit-red)]">+</span>
+                        </summary>
+                        <div class="details-content">
+                            <p class="mb-4 text-lg font-bold">The raw HTML response body of this page contains only a
+                                loading spinner element.</p>
+                            <p class="mb-6 text-lg">All product content (name, description, features, pricing) is
+                                injected by JavaScript after load. Googlebot defers JavaScript rendering to a secondary
+                                queue — pages can wait days before the rendered version is processed, if ever.</p>
+
+                            <h5 class="font-bold uppercase font-mono text-xs mb-2 tracking-widest">How to Fix</h5>
+                            <p class="mb-4">Implement Server-Side Rendering (SSR) or Static Site Generation (SSG) for
+                                this page. Frameworks: Next.js (React SSR), Nuxt.js (Vue SSR), SvelteKit. At minimum,
+                                implement dynamic rendering to serve a pre-rendered HTML snapshot to known bot
+                                user-agents.</p>
+                        </div>
+                    </details>
+
+                    <details class="group">
+                        <summary>
+                            <div class="flex items-start gap-4">
+                                <span class="tag tag-crit shrink-0 mt-1">Critical</span>
+                                <div>
+                                    <h4 class="font-display text-xl font-bold">Product Schema Entirely Missing</h4>
+                                    <div class="font-mono text-xs text-gray-500 mt-1">Check #54 • Structured Data</div>
+                                </div>
+                            </div>
+                            <span class="toggle-icon group-open:text-[var(--crit-red)]">+</span>
+                        </summary>
+                        <div class="details-content">
+                            <p class="mb-4 text-lg">This is a product page with pricing information visible in the HTML
+                                (after JS load), but there is absolutely no structured data of any type. Google Shopping
+                                integration, rich results, and entity recognition all require Product + Offer schema.
+                            </p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+        </section>
+
+        <footer
+            class="border-t-heavy pt-8 pb-12 font-mono text-xs text-[var(--ink-light)] flex flex-col md:flex-row justify-between gap-4">
+            <div>
+                Generated by <strong class="text-[var(--ink-black)]">XeoPix SEO Crawler v3.2.1</strong>
+            </div>
+            <div class="text-right">
+                Next scheduled crawl: 26 May 2026<br />
+                <span class="uppercase tracking-widest text-[var(--ink-black)] font-bold mt-2 inline-block">End of
+                    Report</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Scroll Reveal Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const reveals = document.querySelectorAll('.reveal');
+
+            const revealOnScroll = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        // Optional: stop observing once revealed
+                        // observer.unobserve(entry.target); 
+                    }
+                });
+            }, {
+                root: null,
+                threshold: 0.1,
+                rootMargin: "0px 0px -50px 0px"
+            });
+
+            reveals.forEach(reveal => {
+                revealOnScroll.observe(reveal);
+            });
+
+            // Only allow one detail to be completely open at a time (Accordion behavior)
+            const detailsElements = document.querySelectorAll('details');
+            detailsElements.forEach(targetDetail => {
+                targetDetail.addEventListener('click', () => {
+                    // Close all others
+                    detailsElements.forEach(detail => {
+                        if (detail !== targetDetail) {
+                            detail.removeAttribute('open');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
